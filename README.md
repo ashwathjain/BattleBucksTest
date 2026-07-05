@@ -1,3 +1,5 @@
+IMP POINT = To Access the project make sure to open BattleBucksTest\TechArtTest\Technical_Artist selected folder inside unity
+
 # Dashy Crashy
 
 ## Overview
