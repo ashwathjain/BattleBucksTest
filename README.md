@@ -20,6 +20,7 @@ Engine:
 Tools:
 - Adobe Photoshop (UI, textures)
 - Blender (3D models)
+- Anitgravity
 
 Assets:
 - Mix of self-created and store/free assets
