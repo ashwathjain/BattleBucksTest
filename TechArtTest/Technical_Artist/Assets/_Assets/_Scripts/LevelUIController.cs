@@ -61,8 +61,9 @@ public class LevelUIController : MonoBehaviour
         }
 
         float distance = carController.DistanceTravelled;
-        float progressInCurrentLevel = (distance % distancePerLevel) / distancePerLevel;
-        int calculatedLevel = Mathf.FloorToInt(distance / distancePerLevel) + 1;
+        float distPerLevel = carController != null ? carController.DistancePerLevel : distancePerLevel;
+        float progressInCurrentLevel = (distance % distPerLevel) / distPerLevel;
+        int calculatedLevel = Mathf.FloorToInt(distance / distPerLevel) + 1;
 
         if (calculatedLevel != currentLevel)
         {

@@ -21,6 +21,15 @@ public class CarController : MonoBehaviour
 	MeshRenderer carMeshRenderer;
 	[SerializeField] private int emissionMaterialIndex = 0;
 	[SerializeField] private float groundTravelSpeed = 10f;
+	public float CurrentGroundSpeed => groundTravelSpeed;
+
+	[Header("Level Speed Settings")]
+	[SerializeField] private float distancePerLevel = 300f;
+	public float DistancePerLevel => distancePerLevel;
+	[SerializeField] private float baseGroundSpeed = 10f;
+	[SerializeField] private float speedIncreasePerLevel = 2f;
+	[SerializeField] private float maxGroundSpeed = 30f;
+
 	[SerializeField, Tooltip("Seconds required to earn one score point.")]
 	private float secondsPerPoint = 1f;
 	private float scoreTimer = 0f;
@@ -31,6 +40,9 @@ public class CarController : MonoBehaviour
 	private bool emissionActive = false;
 	private float emissionTimer = 0f;
 	[SerializeField] private float emissionDuration = 2f;
+
+	private Vector3 originalPosition;
+	private Quaternion originalRotation;
 
 	private bool isMoving = false;
 	private int currentStep = 0;
@@ -64,6 +76,8 @@ public class CarController : MonoBehaviour
 
 	private void Awake()
 	{
+		originalPosition = transform.position;
+		originalRotation = transform.rotation;
 		targetPosition = transform.position;
 		distanceTravelled = 0f;
 		scoreTimer = 0f;
@@ -71,8 +85,9 @@ public class CarController : MonoBehaviour
 		movingBody = FindObjectOfType<MovingBody>();
 		if (movingBody != null)
 		{
-			groundTravelSpeed = movingBody.Speed;
+			baseGroundSpeed = movingBody.Speed;
 		}
+		groundTravelSpeed = baseGroundSpeed;
 		EnsureCollisionComponents();
 
 		// Find visual child for tilting (so we don't rotate the physical BoxCollider)
@@ -199,6 +214,17 @@ public class CarController : MonoBehaviour
 				}
 			}
 		}
+		if (currentState == GameState.Playing)
+		{
+			int level = Mathf.FloorToInt(distanceTravelled / distancePerLevel) + 1;
+			float calculatedSpeed = baseGroundSpeed + (level - 1) * speedIncreasePerLevel;
+			groundTravelSpeed = Mathf.Min(calculatedSpeed, maxGroundSpeed);
+		}
+		else
+		{
+			groundTravelSpeed = 0f;
+		}
+
 		distanceTravelled += groundTravelSpeed * Time.deltaTime;
 		if (secondsPerPoint <= 0f)
 		{
@@ -472,6 +498,8 @@ public class CarController : MonoBehaviour
 		Score = 0;
 		scoreTimer = 0f;
 
+		ResetCar();
+
 		// Clean up existing traffic cars in the scene
 		var trafficCars = FindObjectsByType<CarAIMovement>();
 		foreach (var car in trafficCars)
@@ -573,31 +601,7 @@ public class CarController : MonoBehaviour
 		scoreTimer = 0f;
 		passedCarsCount = 0;
 
-		// Reset player car position, rotation and Rigidbody
-		transform.position = new Vector3(targetPosition.x, transform.position.y, transform.position.z);
-		if (visualChild != null)
-		{
-			visualChild.localRotation = initialVisualRotation;
-		}
-		else
-		{
-			transform.rotation = Quaternion.identity;
-		}
-
-		Rigidbody rb = GetComponent<Rigidbody>();
-		if (rb != null)
-		{
-			rb.isKinematic = true;
-			rb.linearVelocity = Vector3.zero;
-			rb.angularVelocity = Vector3.zero;
-			rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-		}
-
-		Collider rootCollider = GetComponent<Collider>();
-		if (rootCollider != null)
-		{
-			rootCollider.isTrigger = true;
-		}
+		ResetCar();
 
 		// Enable moving bodies
 		var movingBodies = FindObjectsByType<MovingBody>();
@@ -617,5 +621,39 @@ public class CarController : MonoBehaviour
 		}
 
 		Debug.Log("Gameplay initialized successfully!");
+	}
+
+	private void ResetCar()
+	{
+		transform.position = originalPosition;
+		transform.rotation = originalRotation;
+		targetPosition = originalPosition;
+		
+		if (horizontalStepCount > 0f)
+		{
+			float stepSize = (rightXPosition - leftXPosition) / horizontalStepCount;
+			currentStep = Mathf.Clamp(Mathf.RoundToInt((originalPosition.x - leftXPosition) / stepSize), 0, (int)horizontalStepCount);
+		}
+		isMoving = false;
+
+		if (visualChild != null)
+		{
+			visualChild.localRotation = initialVisualRotation;
+		}
+
+		Rigidbody rb = GetComponent<Rigidbody>();
+		if (rb != null)
+		{
+			rb.isKinematic = true;
+			rb.linearVelocity = Vector3.zero;
+			rb.angularVelocity = Vector3.zero;
+			rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+		}
+
+		Collider rootCollider = GetComponent<Collider>();
+		if (rootCollider != null)
+		{
+			rootCollider.isTrigger = true;
+		}
 	}
 }

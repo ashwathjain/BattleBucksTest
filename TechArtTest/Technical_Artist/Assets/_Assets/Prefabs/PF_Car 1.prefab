@@ -4895,11 +4895,15 @@ MonoBehaviour:
   horizontalStepCount: 3
   swipeThreshold: 50
   carMeshRenderer: {fileID: 7907747780208748850}
-  emissionMaterialIndex: 2
+  emissionMaterialIndex: 0
   groundTravelSpeed: 10
+  distancePerLevel: 2000
+  baseGroundSpeed: 80
+  speedIncreasePerLevel: 2
+  maxGroundSpeed: 500
   secondsPerPoint: 1
   emissionDuration: 0.5
-  lobbyScenePrefab: {fileID: 0}
+  lobbyScenePrefab: {fileID: 1075641554820843951, guid: c678c6d4af1b3594199b48250934c14f, type: 3}
   messageBoxPrefab: {fileID: 6487370533875195940, guid: 213f4a4a145289442b93ad059d0028b5, type: 3}
 --- !u!65 &8436723702017994686
 BoxCollider:
